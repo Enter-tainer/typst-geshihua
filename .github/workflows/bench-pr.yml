@@ -1,9 +1,9 @@
 name: Benchmark for PR
 on:
   pull_request_target:
-    types: [opened, synchronize]
     branches:
       - master
+  workflow_dispatch:
 
 jobs:
   pre_build:
@@ -28,7 +28,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 需要完整历史以切换到 PR 的基分支
+          ref: ${{ github.event.pull_request.base.ref }}
+
+      - name: Add PR remote
+        run: |
+          git remote add pr-remote ${{ github.event.pull_request.head.repo.git_url }}
+          git fetch pr-remote ${{ github.event.pull_request.head.ref }} --no-tags --depth=1
 
       # 设置 Rust 工具链
       - uses: dtolnay/rust-toolchain@stable
